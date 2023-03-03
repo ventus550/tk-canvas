@@ -9,9 +9,10 @@ class DrawingCanvas(Canvas):
 
 	def on_click(self, e):
 		self.points.clear()
+		self.capture()
 
 	def on_move(self, e):
-		self.clear()
+		self.reset()
 		self.points.append((e.x, e.y))
 		self.color = "black"
 		self.curve(self.points)

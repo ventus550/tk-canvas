@@ -1,7 +1,8 @@
 import tkinter as tk
 import threading
-from numpy import linspace, array
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps
+from itertools import chain
 
 
 class Canvas(threading.Thread):
@@ -12,9 +13,10 @@ class Canvas(threading.Thread):
 
 		self.width = width
 		self.height = height
+		self.history = []
 		self.color = "black"
 		self.lock.acquire()
-
+	
 	def callback(self):
 		self.root.quit()
 
@@ -31,6 +33,13 @@ class Canvas(threading.Thread):
 
 	def clear(self):
 		self.canvas.delete("all")
+	
+	def flush(self):
+		self.history.clear()
+
+	def reset(self):
+		self.clear()
+		self.flush()
 
 	def line(self, x0: float, y0: float, x1: float, y1: float, width = 10):
 		self.canvas.create_line(
@@ -42,7 +51,8 @@ class Canvas(threading.Thread):
 		)
 
 	def curve(self, points: list[tuple[float, float]], spline=True):
-		points = list(array(points))
+		points = list(np.array(points))
+		self.history.append(points)
 
 		if not spline:
 			self._draw_bezier_curve(points)
@@ -61,16 +71,6 @@ class Canvas(threading.Thread):
 			outline=self.color,
 			width=size
 		)
-
-	def _draw_bezier_curve(self, points, n = 64):
-		def B(P, t):
-			if len(P) == 1: return P[0]
-			return (1-t)*B(P[:-1], t) + t*B(P[1:], t)
-		
-		p = points[0]
-		for t in linspace(0, 1, n):
-			p, q = B(points, t), p
-			self.line(*q, *p)
 	
 	def register_mouse_move(self, f):
 		self.canvas.bind('<B1-Motion>', f)
@@ -80,3 +80,42 @@ class Canvas(threading.Thread):
 
 	def register_mouse_release(self, f):
 		self.canvas.bind('<ButtonRelease-1>', f)
+
+	def capture(self, size = (70, 70)):
+		if not len(self.history): return
+		image = Image.new("RGB", size, (255, 255, 255))
+		size = np.array(size)
+		
+
+		xy, XY = self._get_working_region()
+		print(xy, XY)
+
+		dXY = XY - xy
+		scale = size / dXY
+		points = [ (p - xy) * scale for p in self.history ]
+
+		def line(x0, y0, x1, y1):
+			ImageDraw.Draw(image).line((x0, y0, x1, y1), (0,0,0), width=5)
+		
+		self.line, line = line, self.line
+		self.curve(points[-1])
+		line, self.line = self.line, line
+		image.save("uwu.png")
+
+
+
+	def _get_working_region(self):
+		if not self.history:
+			return np.array((0,0)), np.array((self.width, self.height))
+		points = np.array(list(chain(*self.history)))
+		return np.min(points, axis=0), np.max(points, axis=0)
+
+	def _draw_bezier_curve(self, points, n = 64):
+		def B(P, t):
+			if len(P) == 1: return P[0]
+			return (1-t)*B(P[:-1], t) + t*B(P[1:], t)
+
+		p = points[0]
+		for t in np.linspace(0, 1, n):
+			p, q = B(points, t), p
+			self.line(*q, *p)
