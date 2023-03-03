@@ -6,15 +6,20 @@ class DrawingCanvas(Canvas):
 		self.points = []
 		self.register_mouse_press(self.on_click)
 		self.register_mouse_move(self.on_move)
+		self.register_mouse_release(self.on_release)
 
-	def on_click(self, e):
+	def on_click(self, _):
 		self.points.clear()
-		self.capture()
 
 	def on_move(self, e):
 		self.reset()
 		self.points.append((e.x, e.y))
-		self.color = "black"
+		self.stroke_color = "black"
 		self.curve(self.points)
+
+	def on_release(self, _):
+		img, _ = self.capture()
+		img.save("capture.png")
+
 
 canvas = DrawingCanvas()
