@@ -1,8 +1,9 @@
-import tkinter as tk
 import threading
 import numpy as np
-from PIL import Image, ImageDraw
+import tkinter as tk
 from itertools import chain
+from PIL import Image, ImageDraw
+
 
 class Canvas(threading.Thread):
 	def __init__(self, width=1200, height=1200):

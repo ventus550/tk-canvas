@@ -1,5 +1,6 @@
 from canvas import Canvas
 
+
 class DrawingCanvas(Canvas):
 	def __init__(self, width=1200, height=1200):
 		super().__init__(width, height)
@@ -21,5 +22,5 @@ class DrawingCanvas(Canvas):
 		img, _ = self.capture()
 		img.save("capture.png")
 
-
-canvas = DrawingCanvas()
+if __name__ == "__main__":
+	canvas = DrawingCanvas()
