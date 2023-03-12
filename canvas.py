@@ -97,7 +97,7 @@ class Canvas(threading.Thread):
 
 	def capture(self, margin: float = 0.1):
 		xy, XY = self._get_working_region()
-		margin = margin * (XY - xy)
+		margin = margin * (XY - xy) + self.stroke_width
 		size = (self.width, self.height)
 		xy = np.clip(xy - margin, 0, size)
 		XY = np.clip(XY + margin, 0, size)
