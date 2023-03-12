@@ -3,7 +3,6 @@ import numpy as np
 import tkinter as tk
 from itertools import chain
 from PIL import Image, ImageDraw
-from cv2 import copyMakeBorder, BORDER_REPLICATE
 
 
 class Canvas(threading.Thread):
@@ -96,9 +95,9 @@ class Canvas(threading.Thread):
 	def register_mouse_release(self, f):
 		self.canvas.bind('<ButtonRelease-1>', f)
 
-	def capture(self, margin: int = None):
+	def capture(self, margin: float = 0.1):
 		xy, XY = self._get_working_region()
-		margin = margin or self.stroke_width
+		margin = margin * (XY - xy)
 		size = (self.width, self.height)
 		xy = np.clip(xy - margin, 0, size)
 		XY = np.clip(XY + margin, 0, size)
