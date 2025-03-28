@@ -1,26 +1,28 @@
-from canvas import Canvas
-
+from canvas import Canvas, Event
+from time import sleep
+from random import choice
 
 class DrawingCanvas(Canvas):
 	def __init__(self, width=1200, height=1200):
-		super().__init__(width, height)
+		super().__init__(width=width, height=height, daemon=False)
 		self.points = []
-		self.register_mouse_press(self.on_click)
-		self.register_mouse_move(self.on_move)
-		self.register_mouse_release(self.on_release)
 
-	def on_click(self, _):
-		self.points.clear()
-
-	def on_move(self, e):
+	@Event("<B1-Motion>")
+	def on_mouse_move(self, event):
 		self.reset()
-		self.points.append((e.x, e.y))
-		self.stroke_color = "black"
+		self.points.append((event.x, event.y))
 		self.curve(self.points)
 
-	def on_release(self, _):
-		img, _ = self.capture()
-		img.save("capture.png")
+	@Event("<ButtonPress-1>")
+	def on_mouse_press(self, event):
+		self.points.clear()
+
+	@Event("<ButtonRelease-1>")
+	def on_mouse_release(self, event):
+		print(f"Mouse released at: {event.x}, {event.y}")
 
 if __name__ == "__main__":
 	canvas = DrawingCanvas()
+	while not sleep(1):
+		canvas.stroke_color = choice(["red", "green", "blue"])
+	canvas.join()
